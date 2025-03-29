@@ -1,0 +1,52 @@
+.vertex-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.page-header {
+  text-align: center;
+  padding: 20px;
+  border-bottom: 1px solid #4d4d4f;
+}
+
+.page-header h1 {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.page-header p {
+  color: #8e8ea0;
+  font-size: 14px;
+}
+
+.embeddings-status {
+  margin-top: 10px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.embeddings-status.loaded {
+  background-color: #10a37f;
+  color: white;
+}
+
+.embeddings-status.loading {
+  background-color: #f59e0b;
+  color: white;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+} 

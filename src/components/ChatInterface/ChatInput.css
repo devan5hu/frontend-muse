@@ -1,0 +1,129 @@
+.chat-input {
+  padding: 16px;
+  border-top: 1px solid #565869;
+  background-color: #40414f;
+}
+
+.chat-input-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+}
+
+.message-input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #565869;
+  background-color: #40414f;
+  color: #ececf1;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.message-input:focus {
+  border-color: #10a37f;
+}
+
+.send-button {
+  margin-left: 8px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #10a37f;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.send-button:hover {
+  background-color: #0d8c6d;
+}
+
+.send-button:disabled {
+  background-color: #6e6e80;
+  cursor: not-allowed;
+}
+
+.image-upload-button {
+  margin-left: 8px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #565869;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.image-upload-button:hover {
+  background-color: #6e6e80;
+}
+
+.image-upload-button:disabled {
+  background-color: #6e6e80;
+  cursor: not-allowed;
+}
+
+.file-input {
+  display: none;
+}
+
+.image-preview-container {
+  margin-top: 12px;
+  position: relative;
+  display: inline-block;
+}
+
+.image-preview {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 8px;
+  border: 1px solid #565869;
+}
+
+.remove-image-button {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.utility-buttons {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.utility-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #565869;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: background-color 0.3s;
+}
+
+.utility-button:hover {
+  background-color: #6e6e80;
+} 
