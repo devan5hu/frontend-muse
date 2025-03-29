@@ -5,6 +5,9 @@ import TwelveLabs from './pages/TwelveLabs/TwelveLabs';
 import Titan from './pages/Titan/Titan';
 import Azure from './pages/Azure/Azure';
 
+// Make sure you're using the environment variable for API calls
+const serverUrl = process.env.REACT_APP_SERVER_URL || process.env.SERVER_URL;
+
 function App() {
   const [activePage, setActivePage] = useState('vertex');
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +67,7 @@ function App() {
       
       // First try with regular CORS mode
       try {
-        const response = await fetch('http://127.0.0.1:5000/vertex/chat', {
+        const response = await fetch(`${serverUrl}vertex/chat`, {
           method: 'POST',
           body: formData,
           mode: 'cors' // Try with regular CORS first
@@ -87,7 +90,7 @@ function App() {
         // If regular CORS fails, try with no-cors mode
         try {
           // With no-cors mode, we can't read the response
-          await fetch('http://127.0.0.1:5000/vertex/chat', {
+          await fetch(`${serverUrl}vertex/chat`, {
             method: 'POST',
             body: formData,
             mode: 'no-cors'
@@ -164,7 +167,7 @@ function App() {
       }
 
       // Make the request
-      const response = await fetch('http://127.0.0.1:5000/twelvelabs/search', {
+      const response = await fetch(`${serverUrl}twelvelabs/search`, {
         method: 'POST',
         body: formData,
       });
@@ -257,11 +260,13 @@ function App() {
       
       // First try with regular CORS mode
       try {
-        const response = await fetch('http://127.0.0.1:5000/titan/embedding', {
+        const response = await fetch(`${serverUrl}titan/embedding`, {
           method: 'POST',
           body: formData,
           mode: 'cors'
         });
+
+        console.log(serverUrl)
         
         const data = await response.json();
         console.log('Titan API Response:', data);
@@ -298,7 +303,7 @@ function App() {
         // If regular CORS fails, try with no-cors mode
         try {
           // With no-cors mode, we can't read the response
-          await fetch('http://127.0.0.1:5000/titan/embedding', {
+          await fetch(`${serverUrl}titan/embedding`, {
             method: 'POST',
             body: formData,
             mode: 'no-cors'
