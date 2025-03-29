@@ -6,7 +6,10 @@ import Titan from './pages/Titan/Titan';
 import Azure from './pages/Azure/Azure';
 
 // Make sure you're using the environment variable for API calls
-const serverUrl = process.env.REACT_APP_SERVER_URL || process.env.SERVER_URL;
+const serverUrl = process.env.REACT_APP_SERVER_URL || 'https://muse-prototype.onrender.com/';
+
+// Add this line for debugging
+console.log('Server URL:', serverUrl);
 
 function App() {
   const [activePage, setActivePage] = useState('vertex');
