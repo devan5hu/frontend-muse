@@ -1,0 +1,22 @@
+.voyage-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.voyage-header {
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.voyage-header h2 {
+  margin: 0;
+  color: #333;
+}
+
+.voyage-header p {
+  margin: 0.5rem 0 0;
+  color: #666;
+  font-size: 0.9rem;
+} 

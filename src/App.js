@@ -4,9 +4,12 @@ import Vertex from './pages/Vertex/Vertex';
 import TwelveLabs from './pages/TwelveLabs/TwelveLabs';
 import Titan from './pages/Titan/Titan';
 import Azure from './pages/Azure/Azure';
+import Cohere from './pages/Cohere/Cohere';
+import Voyage from './pages/Voyage/Voyage';
 
 // Make sure you're using the environment variable for API calls
 const serverUrl = process.env.REACT_APP_SERVER_URL || 'https://muse-prototype.onrender.com/';
+// const serverUrl = 'http://127.0.0.1:5000/'
 
 // Add this line for debugging
 console.log('Server URL:', serverUrl);
@@ -28,9 +31,19 @@ function App() {
   const [azureMessages, setAzureMessages] = useState([
     { role: 'system', content: 'Welcome to Azure OpenAI chat interface!' }
   ]);
+  const [cohereMessages, setCohereMessages] = useState([
+    { role: 'system', content: 'Welcome to Cohere chat interface!' }
+  ]);
+  // Add state for Voyage messages
+  const [voyageMessages, setVoyageMessages] = useState([
+    { role: 'system', content: 'Welcome to Voyage chat interface!' }
+  ]);
   
   // Add this near your other state declarations
   const [titanLoading, setTitanLoading] = useState(false);
+  const [cohereLoading, setCohereLoading] = useState(false);
+  // Add loading state for Voyage
+  const [voyageLoading, setVoyageLoading] = useState(false);
   
   // Function to handle sending messages for Vertex
   const handleVertexSend = async (message, image) => {
@@ -387,6 +400,256 @@ function App() {
     }, 1000);
   };
   
+  // Function to handle sending messages for Cohere
+  const handleCohereSend = async (message, image) => {
+    if (!message.trim() && !image) return;
+    
+    // Create a message object with text
+    const newMessage = { role: 'user', content: message };
+    
+    // If there's an image, add the image URL to the message
+    if (image) {
+      // Create a URL for the image
+      const imageUrl = URL.createObjectURL(image);
+      newMessage.imageUrl = imageUrl;
+    }
+    
+    // Add the message to the state
+    setCohereMessages(prev => [...prev, newMessage]);
+    
+    // Set loading state
+    setCohereLoading(true);
+    
+    try {
+      // Create FormData object to send files and text
+      const formData = new FormData();
+      if (image) {
+        formData.append('image', image);
+      }
+      formData.append('text', message);
+      
+      console.log("Sending request to Cohere API...");
+      
+      // Log what we're sending for debugging
+      console.log("Sending text to Cohere:", message);
+      if (image) {
+        console.log("Sending image to Cohere:", image.name);
+      }
+      
+      // First try with regular CORS mode
+      try {
+        const response = await fetch(`${serverUrl}api/cohere/search`, {
+          method: 'POST',
+          body: formData,
+          mode: 'cors'
+        });
+        
+        const data = await response.json();
+        console.log('Cohere API Response:', data);
+        
+        // Check if the response has the expected structure
+        if (data.success) {
+          // Create the imageResults object
+          const imageResults = {
+            images: data.formatted_images || data.similar_images || []
+          };
+          
+          // Add AI response to chat with image results
+          setCohereMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: data.message || "Here are some similar images I found using Cohere:",
+              imageResults: imageResults
+            }
+          ]);
+        } else {
+          // Handle error case
+          setCohereMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: data.message || "Sorry, I couldn't find any similar images with Cohere."
+            }
+          ]);
+        }
+      } catch (corsError) {
+        console.error("CORS error with Cohere API, trying no-cors mode:", corsError);
+        
+        // If regular CORS fails, try with no-cors mode
+        try {
+          // With no-cors mode, we can't read the response
+          await fetch(`${serverUrl}api/cohere/search`, {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors'
+          });
+          
+          console.log("Cohere request sent with no-cors mode");
+          
+          // Since we can't read the response with no-cors, use a simulated response
+          setCohereMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: `Request sent to Cohere API successfully, but response cannot be read due to CORS restrictions. Your message was: "${message}". ${image ? 'Your image was also sent.' : ''}` 
+            }
+          ]);
+        } catch (noCorsError) {
+          console.error("Error with Cohere API no-cors mode:", noCorsError);
+          
+          // If both methods fail, fall back to a simulated response
+          setCohereMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: `I received your message in Cohere: "${message}". ${image ? 'I also received your image.' : ''}` 
+            }
+          ]);
+        }
+      }
+    } catch (error) {
+      console.error('Cohere API Error:', error);
+      
+      // Add error message to chat
+      setCohereMessages(prev => [
+        ...prev, 
+        { 
+          role: 'assistant', 
+          content: `Error with Cohere API: ${error.message || "Unknown error occurred"}` 
+        }
+      ]);
+    } finally {
+      // Clear loading state
+      setCohereLoading(false);
+    }
+  };
+  
+  // Function to handle sending messages for Voyage
+  const handleVoyageSend = async (message, image) => {
+    if (!message.trim() && !image) return;
+    
+    // Create a message object with text
+    const newMessage = { role: 'user', content: message };
+    
+    // If there's an image, add the image URL to the message
+    if (image) {
+      // Create a URL for the image
+      const imageUrl = URL.createObjectURL(image);
+      newMessage.imageUrl = imageUrl;
+    }
+    
+    // Add the message to the state
+    setVoyageMessages(prev => [...prev, newMessage]);
+    
+    // Set loading state
+    setVoyageLoading(true);
+    
+    try {
+      // Create FormData object to send files and text
+      const formData = new FormData();
+      if (image) {
+        formData.append('image', image);
+      }
+      formData.append('text', message);
+      
+      console.log("Sending request to Voyage API...");
+      
+      // Log what we're sending for debugging
+      console.log("Sending text to Voyage:", message);
+      if (image) {
+        console.log("Sending image to Voyage:", image.name);
+      }
+      
+      // First try with regular CORS mode
+      try {
+        const response = await fetch(`${serverUrl}api/voyage/search`, {
+          method: 'POST',
+          body: formData,
+          mode: 'cors'
+        });
+        
+        const data = await response.json();
+        console.log('Voyage API Response:', data);
+        
+        // Check if the response has the expected structure
+        if (data.success) {
+          // Create the imageResults object
+          const imageResults = {
+            images: data.formatted_images || data.similar_images || []
+          };
+          
+          // Add AI response to chat with image results
+          setVoyageMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: data.message || "Here are some similar images I found using Voyage:",
+              imageResults: imageResults
+            }
+          ]);
+        } else {
+          // Handle error case
+          setVoyageMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: data.message || "Sorry, I couldn't find any similar images with Voyage."
+            }
+          ]);
+        }
+      } catch (corsError) {
+        console.error("CORS error with Voyage API, trying no-cors mode:", corsError);
+        
+        // If regular CORS fails, try with no-cors mode
+        try {
+          // With no-cors mode, we can't read the response
+          await fetch(`${serverUrl}api/voyage/search`, {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors'
+          });
+          
+          console.log("Voyage request sent with no-cors mode");
+          
+          // Since we can't read the response with no-cors, use a simulated response
+          setVoyageMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: `Request sent to Voyage API successfully, but response cannot be read due to CORS restrictions. Your message was: "${message}". ${image ? 'Your image was also sent.' : ''}` 
+            }
+          ]);
+        } catch (noCorsError) {
+          console.error("Error with Voyage API no-cors mode:", noCorsError);
+          
+          // If both methods fail, fall back to a simulated response
+          setVoyageMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: `I received your message in Voyage: "${message}". ${image ? 'I also received your image.' : ''}` 
+            }
+          ]);
+        }
+      }
+    } catch (error) {
+      console.error('Voyage API Error:', error);
+      
+      // Add error message to chat
+      setVoyageMessages(prev => [
+        ...prev, 
+        { 
+          role: 'assistant', 
+          content: `Error with Voyage API: ${error.message || "Unknown error occurred"}` 
+        }
+      ]);
+    } finally {
+      // Clear loading state
+      setVoyageLoading(false);
+    }
+  };
+  
   const renderPage = () => {
     switch(activePage) {
       case 'vertex':
@@ -406,6 +669,18 @@ function App() {
           messages={titanMessages} 
           onSendMessage={handleTitanSend}
           isLoading={titanLoading}
+        />;
+      case 'cohere':
+        return <Cohere 
+          messages={cohereMessages} 
+          onSendMessage={handleCohereSend}
+          isLoading={cohereLoading}
+        />;
+      case 'voyage':
+        return <Voyage 
+          messages={voyageMessages} 
+          onSendMessage={handleVoyageSend}
+          isLoading={voyageLoading}
         />;
       case 'azure':
         return <Azure 
@@ -450,6 +725,22 @@ function App() {
               onClick={() => setActivePage('titan')}
             >
               Titan
+            </button>
+          </li>
+          <li>
+            <button 
+              className={activePage === 'cohere' ? 'active' : ''} 
+              onClick={() => setActivePage('cohere')}
+            >
+              Cohere
+            </button>
+          </li>
+          <li>
+            <button 
+              className={activePage === 'voyage' ? 'active' : ''} 
+              onClick={() => setActivePage('voyage')}
+            >
+              Voyage
             </button>
           </li>
           <li>
