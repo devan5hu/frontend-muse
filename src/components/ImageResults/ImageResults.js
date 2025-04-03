@@ -15,9 +15,16 @@ const ImageResults = ({ results }) => {
   
   // Function to get the correct S3 image URL
   const getS3ImageUrl = (image) => {
-    // If the URL is already a full S3 URL with query parameters, use it directly
-    if (image.url && image.url.includes('s3.amazonaws.com')) {
-      return image.url;
+    // Handle Azure URLs specifically
+    if (image.url && image.url.includes('s3.amazonaws.com/selected_images')) {
+      // Remove query parameters
+      const urlWithoutParams = image.url.split('?')[0];
+      
+      // Extract the filename
+      const filename = urlWithoutParams.split('/').pop();
+      
+      // Use the all_images path with region
+      return `https://muse-objects-1.s3.us-east-1.amazonaws.com/all_images/${filename}`;
     }
     
     // Otherwise, use the existing logic for other cases
@@ -45,6 +52,20 @@ const ImageResults = ({ results }) => {
   // Close the image preview modal
   const closeModal = () => {
     setSelectedImage(null);
+  };
+
+  // Helper function to format similarity value
+  const formatSimilarity = (value, source) => {
+    if (value === undefined) return null;
+    
+    // Check if the value is already in percentage format (greater than 1)
+    if (value > 1) {
+      // For TwelveLabs or any API that returns percentage values
+      return value.toFixed(2);
+    } else {
+      // For APIs that return decimal values (0-1)
+      return (value * 100).toFixed(2);
+    }
   };
 
   return (
@@ -109,16 +130,16 @@ const ImageResults = ({ results }) => {
                 </div>
                 <div className="image-similarity">
                   {image.combined_similarity !== undefined && (
-                    <div>Combined: <span className="similarity-score">{image.combined_similarity.toFixed(2)}%</span></div>
+                    <div>Combined: <span className="similarity-score">{formatSimilarity(image.combined_similarity)}%</span></div>
                   )}
                   {image.text_similarity !== undefined && (
-                    <div>Text: <span className="similarity-score">{image.text_similarity.toFixed(2)}%</span></div>
+                    <div>Text: <span className="similarity-score">{formatSimilarity(image.text_similarity)}%</span></div>
                   )}
                   {image.image_similarity !== undefined && (
-                    <div>Image: <span className="similarity-score">{image.image_similarity.toFixed(2)}%</span></div>
+                    <div>Image: <span className="similarity-score">{formatSimilarity(image.image_similarity)}%</span></div>
                   )}
                   {image.similarity !== undefined && !image.combined_similarity && !image.text_similarity && !image.image_similarity && (
-                    <div>Similarity: <span className="similarity-score">{image.similarity.toFixed(2)*100}%</span></div>
+                    <div>Similarity: <span className="similarity-score">{formatSimilarity(image.similarity)}%</span></div>
                   )}
                 </div>
               </div>
