@@ -15,23 +15,26 @@ const ImageResults = ({ results }) => {
   
   // Function to get the correct S3 image URL
   const getS3ImageUrl = (image) => {
-    // S3 bucket base URL
+    // If the URL is already a full S3 URL with query parameters, use it directly
+    if (image.url && image.url.includes('s3.amazonaws.com')) {
+      return image.url;
+    }
+    
+    // Otherwise, use the existing logic for other cases
     const s3BaseUrl = 'https://muse-objects-1.s3.us-east-1.amazonaws.com/all_images/';
     
     // Extract filename from the image object
     let filename = '';
     
     if (image.filename) {
-      // Get just the filename without path
       filename = image.filename.split('/').pop();
     } else if (image.file_path) {
-      // Extract from file_path (from Twelve Labs results)
       filename = image.file_path.split('/').pop();
     } else if (image.url) {
-      // Extract from url (from formatted_results)
-      filename = image.url.split('/').pop();
+      // Remove any query parameters and get the filename
+      const urlWithoutParams = image.url.split('?')[0];
+      filename = urlWithoutParams.split('/').pop();
     } else {
-      // Fallback
       filename = `unknown_${Math.random().toString(36).substring(7)}`;
     }
     
@@ -115,7 +118,7 @@ const ImageResults = ({ results }) => {
                     <div>Image: <span className="similarity-score">{image.image_similarity.toFixed(2)}%</span></div>
                   )}
                   {image.similarity !== undefined && !image.combined_similarity && !image.text_similarity && !image.image_similarity && (
-                    <div>Similarity: <span className="similarity-score">{image.similarity.toFixed(2)}%</span></div>
+                    <div>Similarity: <span className="similarity-score">{image.similarity.toFixed(2)*100}%</span></div>
                   )}
                 </div>
               </div>

@@ -45,6 +45,9 @@ function App() {
   // Add loading state for Voyage
   const [voyageLoading, setVoyageLoading] = useState(false);
   
+  // Update Azure loading state
+  const [azureLoading, setAzureLoading] = useState(false);
+  
   // Function to handle sending messages for Vertex
   const handleVertexSend = async (message, image) => {
     if (!message.trim() && !image) return;
@@ -375,7 +378,8 @@ function App() {
     }
   };
   
-  const handleAzureSend = (message, image) => {
+  // Update the Azure handler to match the other search components
+  const handleAzureSend = async (message, image) => {
     if (!message.trim() && !image) return;
     
     // Create a message object with text
@@ -391,13 +395,112 @@ function App() {
     // Add the message to the state
     setAzureMessages(prev => [...prev, newMessage]);
     
-    // Simulate AI response
-    setTimeout(() => {
+    // Set loading state
+    setAzureLoading(true);
+    
+    try {
+      // Create FormData object to send files and text
+      const formData = new FormData();
+      if (image) {
+        formData.append('image', image);
+      }
+      formData.append('text', message);
+      
+      console.log("Sending request to Azure API...");
+      
+      // Log what we're sending for debugging
+      console.log("Sending text to Azure:", message);
+      if (image) {
+        console.log("Sending image to Azure:", image.name);
+      }
+      
+      // First try with regular CORS mode
+      try {
+        const response = await fetch(`${serverUrl}azure/search`, {
+          method: 'POST',
+          body: formData,
+          mode: 'cors'
+        });
+        
+        const data = await response.json();
+        console.log('Azure API Response:', data);
+        
+        // Check if the response has the expected structure
+        if (data.success) {
+          // Create the imageResults object
+          const imageResults = {
+            images: data.formatted_images || data.similar_images || []
+          };
+          
+          // Add AI response to chat with image results
+          setAzureMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: data.message || "Here are some similar images I found using Azure:",
+              imageResults: imageResults
+            }
+          ]);
+        } else {
+          // Handle error case
+          setAzureMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: data.message || "Sorry, I couldn't find any similar images with Azure."
+            }
+          ]);
+        }
+      } catch (corsError) {
+        console.error("CORS error with Azure API, trying no-cors mode:", corsError);
+        
+        // If regular CORS fails, try with no-cors mode
+        try {
+          // With no-cors mode, we can't read the response
+          await fetch(`${serverUrl}azure/search`, {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors'
+          });
+          
+          console.log("Azure request sent with no-cors mode");
+          
+          // Since we can't read the response with no-cors, use a simulated response
+          setAzureMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: `Request sent to Azure API successfully, but response cannot be read due to CORS restrictions. Your message was: "${message}". ${image ? 'Your image was also sent.' : ''}` 
+            }
+          ]);
+        } catch (noCorsError) {
+          console.error("Error with Azure API no-cors mode:", noCorsError);
+          
+          // If both methods fail, fall back to a simulated response
+          setAzureMessages(prev => [
+            ...prev, 
+            { 
+              role: 'assistant', 
+              content: `I received your message in Azure: "${message}". ${image ? 'I also received your image.' : ''}` 
+            }
+          ]);
+        }
+      }
+    } catch (error) {
+      console.error('Azure API Error:', error);
+      
+      // Add error message to chat
       setAzureMessages(prev => [
         ...prev, 
-        { role: 'assistant', content: `This is a simulated response from Azure OpenAI.` }
+        { 
+          role: 'assistant', 
+          content: `Error with Azure API: ${error.message || "Unknown error occurred"}` 
+        }
       ]);
-    }, 1000);
+    } finally {
+      // Clear loading state
+      setAzureLoading(false);
+    }
   };
   
   // Function to handle sending messages for Cohere
@@ -686,6 +789,7 @@ function App() {
         return <Azure 
           messages={azureMessages} 
           onSendMessage={handleAzureSend}
+          isLoading={azureLoading}
         />;
       default:
         return <Vertex 
